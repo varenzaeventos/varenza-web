@@ -1,0 +1,19 @@
+# Cabeceras para Netlify.
+# Las fuentes y las imágenes llevan el tamaño en el nombre del fichero
+# (hero-home-1600.webp), así que pueden cachearse un año sin riesgo: si el
+# contenido cambia, cambia el nombre. El HTML no: tiene que revalidarse en
+# cada visita o los cambios tardarían días en verse.
+
+/assets/fuentes/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/img/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.html
+  Cache-Control: public, max-age=0, must-revalidate
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY

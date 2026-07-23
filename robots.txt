@@ -1,0 +1,6 @@
+# Previsualización privada — la web todavía no debe indexarse.
+# Antes de publicar en el dominio real: borrar la línea Disallow.
+User-agent: *
+Disallow: /
+
+Sitemap: https://varenzaeventos.es/sitemap.xml
