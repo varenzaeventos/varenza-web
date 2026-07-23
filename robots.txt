@@ -1,6 +1,5 @@
-# Previsualización privada — la web todavía no debe indexarse.
-# Antes de publicar en el dominio real: borrar la línea Disallow.
+# Web pública. Google y los buscadores pueden indexar todo.
 User-agent: *
-Disallow: /
+Allow: /
 
 Sitemap: https://varenzaeventos.es/sitemap.xml
