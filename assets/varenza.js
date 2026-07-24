@@ -218,42 +218,43 @@
      el fondo también, y las flechas del teclado pasan de lámina.
      Sin JS, la tira sigue siendo desplazable y las fotos se ven igual:
      solo se pierde la ampliación. */
-  const galeria = document.querySelector('.galeria-caso');
-  if (galeria) {
-    // El visor recorre TODAS las láminas de la página, de todas las bodas.
-    const botones = [...document.querySelectorAll('.galeria-caso .ampliar')];
-    if (botones.length && window.HTMLDialogElement) {
-      const visor = document.createElement('dialog');
-      visor.className = 'visor';
-      const FL = '<svg class="fl" viewBox="0 0 34 13" fill="none" aria-hidden="true">' +
-        '<path d="M1 6.5h31.5M26.5 1l6 5.5-6 5.5" stroke="currentColor" stroke-width="1.4" ' +
-        'stroke-linecap="round" stroke-linejoin="round"/></svg>';
-      visor.innerHTML =
-        '<div class="caja-visor"><img alt=""></div>' +
-        '<button class="v-cerrar" type="button" aria-label="Cerrar">&#10005;</button>' +
-        '<button class="v-prev" type="button" aria-label="Anterior">' + FL + '</button>' +
-        '<button class="v-next" type="button" aria-label="Siguiente">' + FL + '</button>';
-      document.body.appendChild(visor);
-      const grande = visor.querySelector('img');
-      let actual = 0;
+  const galerias = [...document.querySelectorAll('.galeria-caso')];
+  if (galerias.length && window.HTMLDialogElement) {
+    const visor = document.createElement('dialog');
+    visor.className = 'visor';
+    const FL = '<svg class="fl" viewBox="0 0 34 13" fill="none" aria-hidden="true">' +
+      '<path d="M1 6.5h31.5M26.5 1l6 5.5-6 5.5" stroke="currentColor" stroke-width="1.4" ' +
+      'stroke-linecap="round" stroke-linejoin="round"/></svg>';
+    visor.innerHTML =
+      '<div class="caja-visor"><img alt=""></div>' +
+      '<button class="v-cerrar" type="button" aria-label="Cerrar">&#10005;</button>' +
+      '<button class="v-prev" type="button" aria-label="Anterior">' + FL + '</button>' +
+      '<button class="v-next" type="button" aria-label="Siguiente">' + FL + '</button>';
+    document.body.appendChild(visor);
+    const grande = visor.querySelector('img');
+    // El visor se ciñe a la boda desde la que se abre: las flechas recorren
+    // SOLO las láminas de esa celebración, no las de todas las bodas.
+    let grupo = [], actual = 0;
 
-      const muestra = i => {
-        actual = (i + botones.length) % botones.length;
-        const b = botones[actual];
-        grande.src = b.dataset.full;
-        grande.alt = b.querySelector('img') ? b.querySelector('img').alt : '';
-      };
-      botones.forEach((b, i) => b.addEventListener('click', () => { muestra(i); visor.showModal(); }));
-      visor.querySelector('.v-cerrar').addEventListener('click', () => visor.close());
-      visor.querySelector('.v-prev').addEventListener('click', () => muestra(actual - 1));
-      visor.querySelector('.v-next').addEventListener('click', () => muestra(actual + 1));
-      // Clic en el fondo (el propio dialog, no sus hijos) cierra.
-      visor.addEventListener('click', e => { if (e.target === visor) visor.close(); });
-      visor.addEventListener('keydown', e => {
-        if (e.key === 'ArrowLeft') muestra(actual - 1);
-        if (e.key === 'ArrowRight') muestra(actual + 1);
-      });
-    }
+    const muestra = i => {
+      actual = (i + grupo.length) % grupo.length;
+      const b = grupo[actual];
+      grande.src = b.dataset.full;
+      grande.alt = b.querySelector('img') ? b.querySelector('img').alt : '';
+    };
+    galerias.forEach(g => {
+      const botones = [...g.querySelectorAll('.ampliar')];
+      botones.forEach((b, i) => b.addEventListener('click', () => { grupo = botones; muestra(i); visor.showModal(); }));
+    });
+    visor.querySelector('.v-cerrar').addEventListener('click', () => visor.close());
+    visor.querySelector('.v-prev').addEventListener('click', () => muestra(actual - 1));
+    visor.querySelector('.v-next').addEventListener('click', () => muestra(actual + 1));
+    // Clic en el fondo (el propio dialog, no sus hijos) cierra.
+    visor.addEventListener('click', e => { if (e.target === visor) visor.close(); });
+    visor.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft') muestra(actual - 1);
+      if (e.key === 'ArrowRight') muestra(actual + 1);
+    });
   }
 
   /* --- Año del pie ---------------------------------------------------- */
