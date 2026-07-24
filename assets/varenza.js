@@ -253,15 +253,42 @@
     // SOLO las láminas de esa celebración, no las de todas las bodas.
     let grupo = [], actual = 0;
 
+    // Precarga en segundo plano: al pulsar la flecha, la vecina ya está en
+    // caché y el cambio es instantáneo. Un objeto Image por URL basta.
+    const cache = new Map();
+    const precarga = url => {
+      if (!url || cache.has(url)) return;
+      const im = new Image(); im.src = url; cache.set(url, im);
+    };
+
     const muestra = i => {
       actual = (i + grupo.length) % grupo.length;
       const b = grupo[actual];
-      grande.src = b.dataset.full;
+      const url = b.dataset.full;
       grande.alt = b.querySelector('img') ? b.querySelector('img').alt : '';
+      precarga(url);
+      const im = cache.get(url);
+      // No se enseña la foto anterior mientras carga la nueva: el src cambia
+      // SOLO cuando la imagen está lista (si ya está en caché, al vuelo). El
+      // guard evita que una carga tardía pise a una flecha más reciente.
+      const poner = () => { if (grupo[actual] === b) { grande.src = url; grande.style.opacity = ''; } };
+      if (im.complete) { poner(); }
+      else {
+        grande.style.opacity = '0';
+        im.addEventListener('load', poner, { once: true });
+        im.addEventListener('error', poner, { once: true });
+      }
+      // Deja listas las dos vecinas de la MISMA boda.
+      precarga(grupo[(actual - 1 + grupo.length) % grupo.length].dataset.full);
+      precarga(grupo[(actual + 1) % grupo.length].dataset.full);
     };
     galerias.forEach(g => {
       const botones = [...g.querySelectorAll('.ampliar')];
-      botones.forEach((b, i) => b.addEventListener('click', () => { grupo = botones; muestra(i); visor.showModal(); }));
+      botones.forEach((b, i) => {
+        // Al acercar el cursor, se va cargando la versión grande: abrir es al vuelo.
+        b.addEventListener('pointerenter', () => precarga(b.dataset.full), { once: true });
+        b.addEventListener('click', () => { grupo = botones; muestra(i); visor.showModal(); });
+      });
     });
     visor.querySelector('.v-cerrar').addEventListener('click', () => visor.close());
     visor.querySelector('.v-prev').addEventListener('click', () => muestra(actual - 1));
