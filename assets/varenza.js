@@ -171,9 +171,21 @@
     const cuenta = nav.querySelector('.casos-cuenta b');
     const dos = n => String(n).padStart(2, '0');
 
-    // La lámina activa es la que tiene su borde izquierdo más cerca del borde
-    // de la tira: vale igual si se llegó con el dedo o con la rueda.
-    const indice = () => {
+    // Índice objetivo PROPIO. No se lee de la posición del scroll: por eso
+    // varios clics rápidos y seguidos avanzan de uno en uno, sin atascarse ni
+    // saltar de golpe. El navegador reorienta la animación suave a cada clic.
+    let pos = 0;
+    const orig = () => laminas[0] ? laminas[0].offsetLeft : 0;
+    // Último índice al que se puede llegar de verdad (cuando varias láminas
+    // caben a la vez, el scroll topa antes de la última).
+    const maxPos = () => {
+      const ms = tira.scrollWidth - tira.clientWidth;
+      let m = 0;
+      laminas.forEach((l, i) => { if (l.offsetLeft - orig() <= ms + 2) m = i; });
+      return m;
+    };
+    // Lámina más cercana al borde de la tira (para el dedo y la rueda).
+    const cercano = () => {
       const x = tira.getBoundingClientRect().left;
       let mejor = 0, min = Infinity;
       laminas.forEach((l, i) => {
@@ -182,34 +194,39 @@
       });
       return mejor;
     };
-    const pinta = () => {
-      const i = indice();
-      if (cuenta) cuenta.textContent = dos(i + 1);
-      // Al final de verdad: cuando ya no queda nada por desplazar.
-      prev.disabled = tira.scrollLeft <= 2;
-      next.disabled = tira.scrollLeft >= tira.scrollWidth - tira.clientWidth - 2;
+    const marca = () => {
+      pos = Math.max(0, Math.min(maxPos(), pos));
+      if (cuenta) cuenta.textContent = dos(pos + 1);
+      prev.disabled = pos <= 0;
+      next.disabled = pos >= maxPos();
     };
     const ir = i => {
-      const l = laminas[Math.max(0, Math.min(laminas.length - 1, i))];
-      if (l) tira.scrollTo({ left: l.offsetLeft - laminas[0].offsetLeft });
+      pos = Math.max(0, Math.min(maxPos(), i));
+      const l = laminas[pos];
+      if (l) tira.scrollTo({ left: l.offsetLeft - orig(), behavior: 'smooth' });
+      marca();
     };
-    prev.addEventListener('click', () => ir(indice() - 1));
-    next.addEventListener('click', () => ir(indice() + 1));
+    prev.addEventListener('click', () => ir(pos - 1));
+    next.addEventListener('click', () => ir(pos + 1));
     tira.addEventListener('keydown', e => {
-      if (e.key === 'ArrowLeft') { e.preventDefault(); ir(indice() - 1); }
-      if (e.key === 'ArrowRight') { e.preventDefault(); ir(indice() + 1); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); ir(pos - 1); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); ir(pos + 1); }
     });
+    // Al pasar con el dedo o la rueda, el objetivo se pone al día con lo que
+    // se ve, sin pelearse con una animación de clic en curso.
     let t;
-    tira.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(pinta, 90); }, { passive: true });
-    addEventListener('resize', pinta);
-    // Las fotos son perezosas: al arrancar, la tira aún no mide lo que medirá
-    // y las flechas saldrían deshabilitadas «porque no hay nada que pasar».
-    // Se recalcula cuando cada imagen llega y cuando la tira cambia de tamaño.
+    tira.addEventListener('scroll', () => {
+      clearTimeout(t);
+      t = setTimeout(() => { pos = cercano(); marca(); }, 110);
+    }, { passive: true });
+    addEventListener('resize', marca);
+    // Las fotos son perezosas: al arrancar, la tira aún no mide lo que medirá.
+    // Se recalcula el estado cuando cada imagen llega y cuando cambia de tamaño.
     tira.querySelectorAll('img').forEach(img => {
-      if (!img.complete) img.addEventListener('load', pinta, { once: true });
+      if (!img.complete) img.addEventListener('load', marca, { once: true });
     });
-    if (window.ResizeObserver) new ResizeObserver(pinta).observe(tira);
-    pinta();
+    if (window.ResizeObserver) new ResizeObserver(marca).observe(tira);
+    marca();
   });
 
   /* --- Galería de celebraciones reales -------------------------------
