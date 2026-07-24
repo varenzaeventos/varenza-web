@@ -388,7 +388,8 @@
       estado.textContent = malos.length === 1
         ? 'Falta un dato por revisar.'
         : `Faltan ${malos.length} datos por revisar.`;
-      malos[0].focus();
+      malos[0].scrollIntoView({ block: 'center', behavior: 'smooth' });
+      malos[0].focus({ preventScroll: true });
       return;
     }
 
@@ -430,6 +431,12 @@
       if (datos.success === 'false' || datos.success === false) throw new Error(datos.message || 'rechazado');
       location.href = 'gracias.html';
     } catch (err) {
+      // Un fallo de red o una petición cortada por el navegador o un bloqueador
+      // lanza TypeError. En ese caso se reintenta con el envío NATIVO del
+      // formulario (una navegación normal, que casi ningún filtro bloquea): así
+      // entrega aunque en ese móvil el fetch en segundo plano no funcione, y
+      // FormSubmit redirige luego a gracias.html.
+      if (err instanceof TypeError) { form.submit(); return; }
       boton.removeAttribute('aria-busy');
       boton.disabled = false;
       txt.textContent = textoOriginal;
