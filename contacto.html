@@ -57,6 +57,7 @@
   <nav class="nav" id="nav-principal" aria-label="Principal">
     <a href="bodas-madrid.html">Bodas</a>
     <a href="eventos-privados-madrid.html">Eventos privados</a>
+    <a href="eventos-deportivos-madrid.html">Eventos deportivos</a>
     <a href="el-estudio.html">El estudio</a>
     <a href="contacto.html" aria-current="page">Contacto</a>
   </nav>
@@ -108,6 +109,7 @@
                 <option value="">Elige una opci&oacute;n</option>
                 <option>Boda</option>
                 <option>Evento privado</option>
+                <option>Evento deportivo</option>
                 <option>Otro</option>
               </select>
               <p class="error" id="e-tipo" hidden>Elige una opci&oacute;n.</p>
@@ -129,7 +131,8 @@
             </div>
             <div class="campo ancho">
               <label for="c-msg">Mensaje <span class="opt">(opcional)</span></label>
-              <textarea id="c-msg" name="mensaje"></textarea>
+              <textarea id="c-msg" name="mensaje" aria-describedby="a-msg"></textarea>
+              <p class="ayuda" id="a-msg" hidden>Cuéntanos la actividad, la entidad organizadora si la hay y lo que ya tienes previsto.</p>
             </div>
             <div class="campo consent">
               <input id="c-rgpd" name="consentimiento" type="checkbox" required value="S&iacute;" aria-describedby="e-rgpd">
@@ -166,6 +169,7 @@
         <ul>
           <li><a href="bodas-madrid.html">Bodas</a></li>
           <li><a href="eventos-privados-madrid.html">Eventos privados</a></li>
+          <li><a href="eventos-deportivos-madrid.html">Eventos deportivos</a></li>
           <li><a href="el-estudio.html">El estudio</a></li>
           <li><a href="contacto.html">Contacto</a></li>
         </ul>

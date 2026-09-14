@@ -336,6 +336,34 @@
   const form = document.getElementById('f-consulta');
   if (!form) return;
 
+  /* --- Preselección por URL (?tipo=...) -------------------------------
+     Los CTA de las páginas de servicio llegan con ?tipo= (p. ej.
+     contacto.html?tipo=deportivo). Solo se aceptan los valores de esta
+     lista, el valor se asigna por la API del select —nunca se inserta
+     como HTML— y un valor desconocido se ignora sin romper nada. La
+     opción puede cambiarse a mano después: esto solo fija el inicial. */
+  const selTipo = form.querySelector('#c-tipo');
+  if (selTipo) {
+    const TIPOS = { boda: 'Boda', privado: 'Evento privado', deportivo: 'Evento deportivo', otro: 'Otro' };
+    let pedido = null;
+    try { pedido = new URLSearchParams(location.search).get('tipo'); } catch (e) { /* sin soporte, sin preselección */ }
+    const valor = pedido && TIPOS[pedido.trim().toLowerCase()];
+    if (valor && [...selTipo.options].some(o => o.value === valor)) selTipo.value = valor;
+
+    /* En un evento deportivo se habla de participantes, no de invitados,
+       y la ayuda del mensaje orienta hacia la actividad y la entidad.
+       Al volver a otro tipo, todo recupera su texto de siempre. */
+    const etiquetaInv = form.querySelector('label[for="c-invitados"]');
+    const ayudaMsg = document.getElementById('a-msg');
+    const ajustarDeportivo = () => {
+      const dep = selTipo.value === 'Evento deportivo';
+      if (etiquetaInv) etiquetaInv.textContent = dep ? 'Número aproximado de participantes' : 'Número aproximado de invitados';
+      if (ayudaMsg) ayudaMsg.hidden = !dep;
+    };
+    selTipo.addEventListener('change', ajustarDeportivo);
+    ajustarDeportivo();
+  }
+
   const estado = document.getElementById('f-estado');
   const boton = form.querySelector('button[type="submit"]');
   let iniciado = false;
